@@ -1,26 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const mongoose = require("mongoose");
-const Joi = require("joi");
-
-function validateCustomer(body) {
-  const schema = {
-    name: Joi.string()
-      .min(3)
-      .max(50)
-      .required(),
-    mobile: Joi.string()
-      .required()
-      .max(13)
-  };
-  return Joi.validate(body, schema);
-}
-const customerSchema = new mongoose.Schema({
-  name: { type: String, required: true, minlength: 3, maxlength: 50 },
-  mobile: { type: String, required: true, maxlength: 15 },
-  isGold: { type: Boolean, default: false }
-});
-const Customer = mongoose.model("customer", customerSchema);
+const { Customer, validate } = require("../models/customer");
 
 router.get("/", async (req, res) => {
   try {
@@ -31,8 +11,8 @@ router.get("/", async (req, res) => {
   }
 });
 router.post("/", async (req, res) => {
-  let { error } = validateCustomer(req.body);
-  if (error) return res.status(400).send("invalid data");
+  let { error } = validate(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
 
   try {
     let customer = await new Customer({
@@ -58,8 +38,8 @@ router.get("/:id", async (req, res) => {
 });
 router.put("/:id", async (req, res) => {
   if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-    const { error } = validateCustomer(req.body);
-    if (error) return res.status(400).send("invalid data");
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
     try {
       const customer = await Customer.findByIdAndUpdate(
         { _id: req.params.id },

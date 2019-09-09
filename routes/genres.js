@@ -1,18 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
-const Joi = require("joi");
-const mongoose = require("mongoose");
-
-mongoose
-  .connect("mongodb://localhost/Movies", { useNewUrlParser: true })
-  .then(c => console.log("connected successfully"))
-  .catch(e => console.log("error"));
-const genreSchema = new mongoose.Schema({
-  name: { type: String, required: true, minlength: 3, maxlength: 50 }
-});
-
-const Genre = mongoose.model("genre", genreSchema);
+const { Genre, validate } = require("../models/genre");
 
 router.get("/all", async (req, res) => {
   let genres;
@@ -31,8 +19,8 @@ router.post("/", async (req, res) => {
       .max(50)
       .required()
   };
-  const { error } = Joi.validate(req.body, schema);
-  if (error) return res.status(400);
+  const { error } = validate(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
   let genre = new Genre({ name: req.body.name });
   try {
     await genre.save();
@@ -56,7 +44,7 @@ router.put("/:id", async (req, res) => {
     { new: true }
   );
   if (!genre) return res.status(404).send("invalid id");
-  const { error } = Joi.validate(req.body, schema);
+  const { error } = validate(req.body);
   if (error) return res.send(error.details[0].message);
 
   res.send(genre);
