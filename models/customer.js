@@ -20,5 +20,5 @@ const customerSchema = new mongoose.Schema({
 });
 const Customer = mongoose.model("customer", customerSchema);
 
-exports.Customer = Genre;
+exports.Customer = Customer;
 exports.validate = validateCustomer;
