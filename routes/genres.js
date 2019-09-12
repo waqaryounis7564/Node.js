@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { Genre, validate } = require("../models/genre");
+const auth = require("../middlewares/auth");
+const admin = require("../middlewares/admin");
 
 router.get("/all", async (req, res) => {
   let genres;
@@ -12,7 +14,7 @@ router.get("/all", async (req, res) => {
   res.send(genres);
 });
 //posting genre
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   const schema = {
     name: Joi.string()
       .min(3)
@@ -31,7 +33,7 @@ router.post("/", async (req, res) => {
   res.send(genre);
 });
 //editing genre
-router.put("/:id", async (req, res) => {
+router.put("/:id", auth, async (req, res) => {
   const schema = {
     name: Joi.string()
       .min(3)
@@ -50,7 +52,7 @@ router.put("/:id", async (req, res) => {
   res.send(genre);
 });
 //deleting created genre
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", [auth, admin], async (req, res) => {
   const genre = await Genre.findOneAndDelete({ _id: req.params.id });
   if (!genre) return res.send("invalid id");
   res.send(genre);
